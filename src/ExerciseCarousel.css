@@ -1,0 +1,143 @@
+.exercise-select {
+  width: 100vw;
+  height: 100vh;
+
+  background: #111;
+  color: white;
+
+  overflow: hidden;
+  position: relative;
+}
+
+.exercise-select__back {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+
+  z-index: 10;
+}
+
+.exercise-carousel {
+  position: relative;
+
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.exercise-card {
+  position: absolute;
+
+  width: 300px;
+  height: 400px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid white;
+
+  transition:
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.35s ease;
+}
+
+.exercise-card[data-offset="0"] {
+  transform: translateX(0) scale(1);
+  z-index: 3;
+}
+
+.exercise-card[data-offset="-1"] {
+  transform: translateX(-350px) scale(0.8);
+  opacity: 0.5;
+}
+
+.exercise-card[data-offset="1"] {
+  transform: translateX(350px) scale(0.8);
+  opacity: 0.5;
+}
+
+.exercise-card[data-offset="-2"],
+.exercise-card[data-offset="2"],
+.exercise-card[data-offset="-3"],
+.exercise-card[data-offset="3"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.exercise-carousel__controls {
+  position: absolute;
+
+  left: 50%;
+  bottom: 60px;
+
+  transform: translateX(-50%);
+
+  display: flex;
+  gap: 40px;
+}
+
+.exercise-carousel__controls button {
+  width: 60px;
+  height: 60px;
+
+  cursor: pointer;
+}
+
+.exercise-card canvas {
+  position: absolute;
+  inset: 0;
+
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.exercise-card__name {
+  position: absolute;
+  left: 50%;
+  bottom: 20px;
+
+  transform: translateX(-50%);
+
+  z-index: 2;
+
+  white-space: nowrap;
+}
+
+.exercise-select {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #111;
+}
+
+.exercise-carousel__canvas {
+  position: absolute !important;
+  inset: 0;
+}
+
+.exercise-select__back,
+.exercise-carousel__controls {
+  position: absolute;
+  z-index: 10;
+}
+
+.exercise-select__back {
+  top: 24px;
+  left: 24px;
+}
+
+.exercise-carousel__controls {
+  left: 50%;
+  bottom: 60px;
+
+  transform: translateX(-50%);
+
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}

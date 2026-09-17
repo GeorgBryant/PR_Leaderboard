@@ -1,54 +1,159 @@
+import { useState } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
-import Gym from "./Gym";
-import CameraRig from "./CameraRig";
-import Dancer from "./Dancer";
-import Backdrop from "./Backdrop";
 
+import SiteAudio from "./SiteAudio";
+import CameraRig from "./CameraRig";
+import Gym from "./Gym";
+import Dancer from "./Dancer";
+import BeachBackdrop from "./BeachBackdrop";
+import ExerciseCarousel, {
+  exercises,
+} from "./ExerciseCarousel";
+
+import "./ExerciseCarousel.css";
 
 export default function App() {
+  const [screen, setScreen] =
+    useState("home");
+
+  const [activeIndex, setActiveIndex] =
+    useState(0);
+
+  function previousExercise() {
+    setActiveIndex(
+      (current) =>
+        (current - 1 + exercises.length) %
+        exercises.length
+    );
+  }
+
+  function nextExercise() {
+    setActiveIndex(
+      (current) =>
+        (current + 1) %
+        exercises.length
+    );
+  }
+
   return (
-    <Canvas
-      camera={{
-        position: [0, 2.7, 8.5],
-        fov: 38,
-      }}
-    >
-      <color attach="background" args={["#111111"]} />
+    <main className="app">
+      <SiteAudio />
 
-      <ambientLight intensity={0.8} />
+      <Canvas
+        camera={{
+          position: [0, -2, 52],
+          fov: 38,
+          far: 5000,
+        }}
+      >
+        <BeachBackdrop />
 
-      <directionalLight
-        position={[0, 6, 4]}
-        intensity={2.5}
-      />
+        {/* Temporary development lighting */}
 
-      <directionalLight
-        position={[-4, 3, 2]}
-        intensity={1.2}
-      />
+        <ambientLight
+          intensity={0.35}
+          color="#6f5b9e"
+        />
 
-      <directionalLight
-        position={[4, 3, 2]}
-        intensity={1.2}
-      />
+        <directionalLight
+          position={[0, 20, -40]}
+          intensity={2.5}
+          color="#ffffff"
+        />
 
-      <Gym />
+        <pointLight
+          position={[0, 3, 1]}
+          intensity={20}
+          distance={12}
+          decay={2}
+          color="#f4e8ff"
+        />
 
-        <Dancer />
-        
-        <Backdrop />
+        {/* ----------------------------------
+            CAMERA
+        ---------------------------------- */}
 
-      <OrbitControls
-  target={[0, 0, -15]}
-  enablePan={false}
-  enableZoom={true}
-/>
+        <CameraRig
+          mode={screen}
+          onTransitionComplete={(destination) =>
+            setScreen(destination)
+          }
+        />
 
-      {/*<CameraRig /> */}
+        {/* ----------------------------------
+            HOME SCENE
+        ---------------------------------- */}
 
-    </Canvas>
+        <Gym />
+
+        <Dancer
+          mode={screen}
+        />
+
+        {/* Exercise carousel stays
+            permanently in the world */}
+
+        <ExerciseCarousel
+          activeIndex={activeIndex}
+        />
+      </Canvas>
+
+      {/* ----------------------------------
+          TEMPORARY EXERCISE SELECTOR
+      ---------------------------------- */}
+
+      {screen === "home" && (
+        <button
+          onClick={() =>
+            setScreen("entering")
+          }
+          style={{
+            position: "fixed",
+            top: 20,
+            left: 20,
+            zIndex: 100,
+          }}
+        >
+          TEMP: EXERCISES
+        </button>
+      )}
+
+      {/* ----------------------------------
+          CAROUSEL UI
+      ---------------------------------- */}
+
+      {screen === "carousel" && (
+        <>
+          <button
+            className="exercise-select__back"
+            onClick={() =>
+              setScreen("exiting")
+            }
+          >
+            BACK
+          </button>
+
+          <div className="exercise-carousel__controls">
+            <button
+              onClick={previousExercise}
+              aria-label="Previous exercise"
+            >
+              ←
+            </button>
+
+            <span>
+              {exercises[activeIndex].name}
+            </span>
+
+            <button
+              onClick={nextExercise}
+              aria-label="Next exercise"
+            >
+              →
+            </button>
+          </div>
+        </>
+      )}
+    </main>
   );
-
-  
 }
