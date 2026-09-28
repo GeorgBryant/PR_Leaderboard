@@ -53,6 +53,13 @@ const RETURN_PORTAL_DURATION = 1.15;
 
 const RETURN_HOME_DURATION = 1.6;
 
+// Leaderboard prototype.
+// Existing home / portal / carousel movement
+// remains untouched.
+const LEADERBOARD_LAUNCH_DURATION = 4.2;
+const LEADERBOARD_LAUNCH_HEIGHT = 32;
+const LEADERBOARD_FORWARD_TRAVEL = 8;
+
 // Cross back slightly early while the
 // mannequin is filling the viewport.
 const RETURN_CROSS_PROGRESS = 0.82;
@@ -205,6 +212,28 @@ export default function CameraRig({
       new THREE.Vector3()
     );
 
+  // --------------------------------------------
+  // LEADERBOARD PROTOTYPE
+  // --------------------------------------------
+
+  const leaderboardStart =
+    useRef(
+      new THREE.Vector3()
+    );
+
+  const leaderboardControl =
+    useRef(
+      new THREE.Vector3()
+    );
+
+  const leaderboardEnd =
+    useRef(
+      new THREE.Vector3()
+    );
+
+  const leaderboardStartRotation = useRef(new THREE.Quaternion());
+  const leaderboardEndRotation = useRef(new THREE.Quaternion());
+
   useFrame((state, delta) => {
     const t =
       state.clock.elapsedTime;
@@ -289,6 +318,18 @@ export default function CameraRig({
       }
 
       // ----------------------------------------
+      // BEGIN LEADERBOARD APPROACH
+      // ----------------------------------------
+
+      if (mode === "enteringLeaderboard") {
+        transitionTime.current = 0;
+        transitionComplete.current = false;
+        leaderboardStart.current.copy(camera.position);
+        leaderboardStartRotation.current.copy(camera.quaternion);
+        currentLookAt.copy(camera.position).add(new THREE.Vector3(0, 0, 10));
+      }
+
+      // ----------------------------------------
       // BEGIN RETURN TRANSITION
       // ----------------------------------------
 
@@ -356,6 +397,18 @@ export default function CameraRig({
           entranceWorldPosition.z -
             0.15
         );
+      }
+
+      // Instant return from Mission Control: no descent or landing.
+      if (mode === "carousel" &&
+          (previousMode.current === "leaderboard" ||
+           previousMode.current === "enteringLeaderboard")) {
+        camera.position.set(0, CAROUSEL_CAMERA_Y, CAROUSEL_CAMERA_Z);
+        camera.rotation.set(0, Math.PI, 0);
+        targetPosition.copy(camera.position);
+        currentLookAt.set(0, CAROUSEL_CAMERA_Y, CAROUSEL_PORTAL_Z);
+        transitionTime.current = 0;
+        transitionComplete.current = false;
       }
 
       if (mode === "home") {
@@ -737,6 +790,73 @@ camera.lookAt(
         0
       );
 
+      return;
+    }
+
+    // ------------------------------------------
+    // ROCKET LAUNCH — GROUNDED CAMERA, THEN PURSUIT
+    // ------------------------------------------
+    if (mode === "enteringLeaderboard") {
+      transitionTime.current += delta;
+      const elapsed = transitionTime.current;
+      const progress = THREE.MathUtils.clamp(
+        elapsed / LEADERBOARD_LAUNCH_DURATION, 0, 1
+      );
+      const target = scene.getObjectByName("LaunchCameraTarget");
+      if (target) {
+        target.updateWorldMatrix(true, false);
+        target.getWorldPosition(leaderboardEnd.current);
+
+        // Establish the launch from the existing carousel camera position.
+        // Do not pitch or move during the first half-second.
+        const chase = THREE.MathUtils.smoothstep(elapsed, 0.65, 1.5);
+        targetPosition.copy(leaderboardEnd.current);
+        targetPosition.add(new THREE.Vector3(0, -3.0, -12));
+        // Keep lateral framing fixed across models with different pivots.
+        targetPosition.x = 0;
+        targetPosition.y = Math.max(targetPosition.y, CAROUSEL_CAMERA_Y);
+        const followRate = 1 - Math.exp(-delta * 1.8 * chase);
+        camera.position.lerp(targetPosition, followRate);
+
+        // Begin the upward tilt only after the rocket clears the scene.
+        targetLookAt.copy(leaderboardEnd.current).add(
+          new THREE.Vector3(0, 1.2, 0)
+        );
+        targetLookAt.x = 0;
+        const lookRate = 1 - Math.exp(-delta * 2.8 * chase);
+        currentLookAt.lerp(targetLookAt, lookRate);
+        if (chase > 0) {
+          // Quaternion blend avoids an abrupt jump from carousel rotation.
+          const lookMatrix = new THREE.Matrix4().lookAt(
+            camera.position, currentLookAt, camera.up
+          );
+          leaderboardEndRotation.current.setFromRotationMatrix(lookMatrix);
+          camera.quaternion.slerp(
+            leaderboardEndRotation.current,
+            1 - Math.exp(-delta * 4 * chase)
+          );
+        }
+      }
+      if (progress >= 1 && !transitionComplete.current) {
+        transitionComplete.current = true;
+        onTransitionComplete?.("leaderboard");
+      }
+      return;
+    }
+
+    // Hold the final pursuit composition for this first prototype.
+    if (mode === "leaderboard") {
+      const target = scene.getObjectByName("LaunchCameraTarget");
+      if (target) {
+        target.updateWorldMatrix(true, false);
+        target.getWorldPosition(leaderboardEnd.current);
+        camera.position.copy(leaderboardEnd.current).add(new THREE.Vector3(0, -2.1, -10));
+        camera.position.x = 0;
+        camera.position.y = Math.max(camera.position.y, -3.1);
+        currentLookAt.copy(leaderboardEnd.current).add(new THREE.Vector3(0, 1.5, 0));
+        currentLookAt.x = 0;
+        camera.lookAt(currentLookAt);
+      }
       return;
     }
 

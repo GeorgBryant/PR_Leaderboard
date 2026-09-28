@@ -1,0 +1,11 @@
+.space-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1.5s cubic-bezier(.35,0,.2,1);
+  background: #070b1d;
+}
+.space-transition--visible { opacity: 1; }
+.space-transition canvas { display: block; }

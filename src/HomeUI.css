@@ -1,0 +1,200 @@
+/* ----------------------------------
+   HOME UI
+---------------------------------- */
+
+.home-ui {
+  --ui-cream: #f1ebdd;
+  --ui-ink: #17131c;
+  --ui-purple: #6f5b9e;
+  --ui-pink: #d45b86;
+
+  position: fixed;
+  inset: 0;
+
+  z-index: 20;
+  pointer-events: none;
+
+  font-family: "industry", sans-serif;
+  color: var(--ui-cream);
+}
+
+
+/* ----------------------------------
+   START
+---------------------------------- */
+
+.home-ui__start {
+  position: absolute;
+
+  left: 50%;
+  bottom: 6vh;
+
+  transform: translateX(-50%);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  width: clamp(290px, 22vw, 380px);
+
+  padding:
+    15px
+    18px
+    13px
+    20px;
+
+  overflow: hidden;
+  box-sizing: border-box;
+
+  border: 1px solid rgba(241, 235, 221, 0.5);
+
+  background: rgba(23, 19, 28, 0.92);
+  color: var(--ui-cream);
+
+  font-family: inherit;
+  font-size: clamp(32px, 2.8vw, 46px);
+  font-weight: 500;
+  font-style: normal;
+
+  line-height: 0.82;
+  letter-spacing: -0.025em;
+
+  cursor: pointer;
+  pointer-events: auto;
+
+  isolation: isolate;
+
+  transition:
+    border-color 180ms ease,
+    transform 180ms ease;
+}
+
+
+/* ----------------------------------
+   ACCENT STRIP
+---------------------------------- */
+
+.home-ui__start::before {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  background:
+    linear-gradient(
+      90deg,
+      var(--ui-purple) 0%,
+      var(--ui-pink) 100%
+    );
+
+  transform: translateX(-101%);
+
+  z-index: -1;
+
+  transition:
+    transform 220ms
+    cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+
+/* ----------------------------------
+   LOWER RULE
+---------------------------------- */
+
+.home-ui__start::after {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  height: 3px;
+
+  background: var(--ui-cream);
+
+  transform-origin: left center;
+
+  transition:
+    transform 220ms ease,
+    background 180ms ease;
+}
+
+
+/* ----------------------------------
+   START TEXT
+---------------------------------- */
+
+.home-ui__start > span:first-child {
+  display: inline-block;
+
+  transition:
+    transform 220ms
+    cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+
+/* ----------------------------------
+   START ARROW
+---------------------------------- */
+
+.home-ui__start-arrow {
+  display: inline-block;
+
+  font-size: 0.55em;
+  font-weight: 400;
+
+  line-height: 1;
+  letter-spacing: 0;
+
+  transition:
+    transform 220ms
+    cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+
+/* ----------------------------------
+   START HOVER
+---------------------------------- */
+
+.home-ui__start:hover {
+  border-color: var(--ui-cream);
+
+  transform:
+    translateX(-50%)
+    translateY(-2px);
+}
+
+.home-ui__start:hover::before {
+  transform: translateX(0);
+}
+
+.home-ui__start:hover::after {
+  transform: scaleX(0.35);
+}
+
+.home-ui__start:hover > span:first-child {
+  transform: translateX(5px);
+}
+
+.home-ui__start:hover
+.home-ui__start-arrow {
+  transform: translateX(7px);
+}
+
+
+/* ----------------------------------
+   CLICK
+---------------------------------- */
+
+.home-ui__start:active {
+  transform:
+    translateX(-50%)
+    translateY(0);
+}
+/* V1 art pass: retain colour response, remove decorative line/translation. */
+.home-ui__start::after{content:none}
+.home-ui__start:hover{transform:translateX(-50%)}
+.home-ui__start:hover>span:first-child,.home-ui__start:hover .home-ui__start-arrow{transform:none}
+.home-ui__start:focus-visible{outline:2px solid #f1ebdd;outline-offset:4px}

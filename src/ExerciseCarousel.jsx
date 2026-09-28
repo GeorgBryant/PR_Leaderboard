@@ -1,6 +1,7 @@
 import {
   useMemo,
   useRef,
+  useLayoutEffect,
 } from "react";
 
 import {
@@ -196,6 +197,59 @@ function GroundShadow({
 }
 
 
+
+// Lightweight instanced low-poly smoke. Particles stay behind as the rocket rises.
+function LaunchSmoke({ flight, scaleRef, verticalOffset = -0.9 }) {
+  const mesh = useRef();
+  const clock = useRef(0);
+  const cursor = useRef(0);
+  const particles = useRef(Array.from({ length: 180 }, () => ({ age: 99, life: 1, x: 0, y: 0, z: 0, vx: 0, vz: 0, size: 1 })));
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+  useFrame((_, delta) => {
+    if (!mesh.current || !flight.current) return;
+    clock.current += delta;
+    // Continuous emission; fewer particles as the mannequin reaches altitude.
+    const height = flight.current.position.y * (scaleRef.current?.scale.x ?? 1);
+    const count = height < 35 ? 4 : 2;
+    for (let i = 0; i < count; i++) {
+      const item = particles.current[cursor.current++ % particles.current.length];
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 0.45 + Math.random() * 1.8;
+      item.age = 0;
+      item.life = 0.9 + Math.random() * 1.4;
+      item.x = (Math.random() - 0.5) * 0.45;
+      item.y = flight.current.position.y + verticalOffset;
+      item.z = (Math.random() - 0.5) * 0.45;
+      item.vx = Math.cos(angle) * speed;
+      item.vz = Math.sin(angle) * speed;
+      item.size = 0.22 + Math.random() * 0.5;
+    }
+    particles.current.forEach((item, index) => {
+      item.age += delta;
+      if (item.age < item.life) {
+        item.x += item.vx * delta;
+        item.z += item.vz * delta;
+        item.y -= 0.7 * delta;
+        const fade = Math.max(0.001, 1 - item.age / item.life);
+        dummy.position.set(item.x, item.y, item.z);
+        dummy.scale.setScalar(item.size * (1 + item.age * 1.7) * fade);
+      } else {
+        dummy.position.set(0, -10000, 0);
+        dummy.scale.setScalar(0.001);
+      }
+      dummy.updateMatrix();
+      mesh.current.setMatrixAt(index, dummy.matrix);
+    });
+    mesh.current.instanceMatrix.needsUpdate = true;
+  });
+  return (
+    <instancedMesh ref={mesh} args={[null, null, 180]} frustumCulled={false}>
+      <icosahedronGeometry args={[1, 0]} />
+      <meshBasicMaterial color="#e3c6df" transparent opacity={0.3} depthWrite={false} />
+    </instancedMesh>
+  );
+}
+
 // --------------------------------------------
 // INDIVIDUAL EXERCISE
 // --------------------------------------------
@@ -205,20 +259,33 @@ function CarouselExercise({
   xPosition,
   zPosition,
   positionScale,
+  isActive,
+  launching,
 }) {
-  const group =
-    useRef();
+  const group = useRef();
+  const flight = useRef();
+  const launchClock = useRef(0);
 
   const targetScale =
     exercise.scale *
     positionScale;
+
+  // Reset the launched model synchronously when returning to the carousel.
+  // The smoke component unmounts on the same render.
+  useLayoutEffect(() => {
+    if (!launching) {
+      launchClock.current = 0;
+      if (flight.current) flight.current.position.y = 0;
+    }
+  }, [launching]);
+
 
   useFrame((_, delta) => {
     if (!group.current) {
       return;
     }
 
-    group.current.position.x =
+    group.current.position.x = launching ? 0 :
       THREE.MathUtils.damp(
         group.current.position.x,
         xPosition,
@@ -226,7 +293,7 @@ function CarouselExercise({
         delta
       );
 
-    group.current.position.z =
+    group.current.position.z = launching ? 0 :
       THREE.MathUtils.damp(
         group.current.position.z,
         zPosition,
@@ -242,38 +309,49 @@ function CarouselExercise({
         delta
       );
 
-    group.current.scale.setScalar(
-      newScale
-    );
+    group.current.scale.setScalar(launching ? exercise.scale : newScale);
+
+    if (flight.current) {
+      if (launching) launchClock.current += delta;
+      else launchClock.current = 0;
+      const t = THREE.MathUtils.clamp(launchClock.current / 4.2, 0, 1);
+      // Gentle lift, then rocket acceleration.
+      const rise = 65 * t * t * t;
+      flight.current.position.y = rise / Math.max(group.current.scale.x, 0.01);
+    }
   });
 
   return (
     <group
       ref={group}
-      position={[
-        0,
-        exercise.y,
-        0,
-      ]}
-      scale={
-        exercise.scale
-      }
-      rotation={[
-        exercise.rotationX ??
-          0,
-        exercise.rotationY ??
-          0,
-        exercise.rotationZ ??
-          0,
-      ]}
+      position={[xPosition, exercise.y, zPosition]}
+      scale={targetScale}
     >
+      <group ref={flight}>
+        {/* Target offset is in WORLD units, not multiplied by model scale.
+            Camera never follows an animated bone or model pivot. */}
+        <object3D name={launching ? "LaunchCameraTarget" : undefined}
+          position={[0, 1.8 / exercise.scale, 0]} />
+        <group rotation={[exercise.rotationX ?? 0, exercise.rotationY ?? 0, exercise.rotationZ ?? 0]}>
+      <object3D
+        name={
+          isActive
+            ? "ActiveExerciseTarget"
+            : undefined
+        }
+        position={[0, 0, 0]}
+      />
+
       <Exercise
         url={exercise.url}
       />
 
-      <GroundShadow
-        exercise={exercise}
-      />
+        </group>
+      </group>
+      {!launching && <GroundShadow exercise={exercise} />}
+      {launching && <LaunchSmoke flight={flight} scaleRef={group} 
+      verticalOffset={
+        exercise.id === "deadlift" ? -0.3 : -0.9 } />}
     </group>
   );
 }
@@ -285,6 +363,7 @@ function CarouselExercise({
 
 export default function ExerciseCarousel({
   activeIndex,
+  mode = "home",
 }) {
   return (
     <group
@@ -368,11 +447,12 @@ export default function ExerciseCarousel({
                 ? 0.65
                 : 0.4;
 
+          const launching = isActive &&
+            (mode === "enteringLeaderboard" || mode === "leaderboard");
+
           return (
             <CarouselExercise
-              key={
-                exercise.id
-              }
+              key={`${exercise.id}-${launching ? "flight" : "rest"}`}
               exercise={
                 exercise
               }
@@ -385,6 +465,10 @@ export default function ExerciseCarousel({
               positionScale={
                 positionScale
               }
+              isActive={
+                isActive
+              }
+              launching={launching}
             />
           );
         }

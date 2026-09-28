@@ -1,0 +1,120 @@
+/* Functional V1 art pass: 10 / 70 / 20 board layout. */
+.mission{--cream:#f1ebdd;--purple:#6f5b9e;position:fixed;inset:0;z-index:20;box-sizing:border-box;padding:clamp(16px,2.5vw,40px);color:var(--cream);font-family:industry,Arial,sans-serif;pointer-events:none;--board-width:clamp(420px,35vw,550px);--board-height:min(700px,78vh)}
+.mission button{font:inherit;cursor:pointer;pointer-events:auto}
+.mission button:focus-visible{outline:2px solid #f1ebdd;outline-offset:3px}
+.mission__back{position:absolute;top:clamp(16px,2.5vw,40px);left:clamp(16px,2.5vw,40px);padding:10px 15px;border:1px solid #f1ebdd80;background:#17131caa;color:var(--cream);font-size:11px!important;letter-spacing:.08em;z-index:2}
+.mission__back:hover{background:#6f5b9e}
+.mission__layout{position:relative;width:100%;height:100%;display:flex;justify-content:center;align-items:center;gap:0}
+.mission__board,.mission__feed{box-sizing:border-box;background:rgba(23,19,28,.91);border:1px solid #f1ebdd70;box-shadow:0 14px 60px #0707154d;backdrop-filter:blur(14px);pointer-events:auto}
+.mission__board{position:relative;z-index:2;width:var(--board-width);height:var(--board-height);min-height:490px;padding:clamp(18px,2vw,28px);display:flex;flex-direction:column;overflow:hidden}
+.mission__board-header{height:10%;min-height:48px;display:flex;align-items:flex-start;border-bottom:1px solid #f1ebdd40}
+.mission__board-header h1{margin:0;font-size:clamp(20px,2vw,27px);line-height:1.2;font-weight:550;letter-spacing:-.025em;text-transform:uppercase}
+.mission__ranking{height:70%;min-height:0;display:flex;flex-direction:column;padding-top:16px;box-sizing:border-box}
+.mission__ranking-header{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
+.mission__ranking-header h2{margin:0;font-size:15px;font-weight:550;letter-spacing:.025em}
+.mission__metric{display:flex;align-items:center;gap:8px;white-space:nowrap;font-size:10px;letter-spacing:.07em;color:#a69dac}
+.mission__metric .is-active{color:var(--cream)}
+.mission__switch{width:42px;height:23px;border:1px solid #b4a3c3;border-radius:100px;background:#484153;padding:2px;display:flex;align-items:center;justify-content:flex-start}
+.mission__switch.is-bw{background:#6f5b9e;justify-content:flex-end}
+.mission__switch-thumb{display:block;width:17px;height:17px;border-radius:50%;background:var(--cream)}
+.mission__columns,.mission__athlete{display:grid;grid-template-columns:48px minmax(0,1fr) 92px;align-items:center;gap:8px}
+.mission__columns{flex:none;padding:10px 0;border-bottom:1px solid #f1ebdd80;font-size:10px;letter-spacing:.09em;color:#b9adc0}
+.mission__columns span:last-child,.mission__athlete span:last-child{text-align:right}
+.mission__records{flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#6f5b9e transparent}
+.mission__athlete{padding:12px 0;border-bottom:1px solid #f1ebdd30;font-size:13px}
+.mission__athlete span:first-child{color:#dca8d0}.mission__athlete strong{font-weight:500;overflow-wrap:anywhere}
+.mission__athlete--guest{background:#6f5b9e44;padding-left:5px;padding-right:5px}
+.mission__entry{height:20%;min-height:0;box-sizing:border-box;border-top:1px solid #f1ebdd50;padding-top:12px;display:flex;flex-direction:column;justify-content:flex-end;gap:6px}
+.mission__submit{width:100%;min-height:40px;padding:11px 13px;border:1px solid #a48aba;background:#6f5b9e40;color:var(--cream);display:flex;justify-content:space-between;align-items:center;font-size:11px!important;letter-spacing:.07em;text-align:left}
+.mission__submit:hover{background:#6f5b9e}.mission__submit:disabled{opacity:.5;cursor:not-allowed}
+.mission__note{margin:12px 0;font-size:11px;color:#bdb1c5;line-height:1.4}.mission__entry .mission__note{margin:0;font-size:10px}
+.mission__error{margin:0;color:#ffb2b2;font-size:11px;max-height:38px;overflow-y:auto}
+.mission__record-form{display:flex;flex-direction:column;gap:6px}.mission__form-heading{display:flex;justify-content:space-between;align-items:center;font-size:10px;letter-spacing:.08em}
+.mission__cancel{background:none;border:0;color:#d5c7db;font-size:10px!important;padding:2px}.mission__cancel:hover{text-decoration:underline}
+.mission__fields{display:grid;grid-template-columns:1fr 1fr;gap:8px}.mission__fields label{font-size:10px;letter-spacing:.06em;min-width:0}
+.mission__fields input{display:block;box-sizing:border-box;width:100%;margin-top:4px;padding:7px 8px;border:1px solid #f1ebdd70;background:#17131c;color:var(--cream);font:inherit;font-size:12px}
+.mission__feed{
+  position:absolute;
+  /* The board remains centred in the viewport; camera hangs from its upper-right. */
+  left:calc(50% + var(--board-width) / 2 - 1px);
+  top:calc(50% - var(--board-height) / 2);
+  width:clamp(205px,19vw,290px);
+  padding:10px;
+  z-index:3;
+}
+.mission__feed-top{display:flex;justify-content:space-between;gap:8px;margin-bottom:9px;font-size:10px;letter-spacing:.08em;text-transform:uppercase}.mission__rec{color:#f1a0bb}
+.mission__viewport{height:clamp(170px,22vh,235px);position:relative;overflow:hidden;border:1px solid #f1ebdd58;background:radial-gradient(ellipse at center,#343153,#141629 65%,#080d18)}
+.mission__viewport canvas{display:block}
+/* When the side attachment would hit the viewport edge, stack it below. */
+@media(max-width:1120px){
+ .mission{overflow-y:auto}
+ .mission__layout{height:auto;min-height:100%;padding-top:56px;padding-bottom:24px;flex-direction:column;gap:14px}
+ .mission__board{width:min(100%,550px);height:min(700px,75vh);min-height:490px;flex:none}
+ .mission__feed{position:relative;left:auto;top:auto;width:min(100%,290px);flex:none;align-self:center}
+ .mission__back{position:fixed}
+}
+@media(max-height:700px) and (min-width:1121px){.mission{--board-height:88vh}.mission__board{min-height:420px}.mission__entry{height:25%}.mission__ranking{height:65%}}
+
+
+/* Camera establishes signal, then the board expands from behind it.
+   Both panels share a 1050ms movement window and the same easing. */
+@keyframes camera-dock {
+  0%,46% { opacity:1; transform:translateY(-50px, calc(var(--board-height) / 2 - 50%)) scale(1.2); }
+  88%,100% { opacity:1; transform:translateX(0) scale(1); }
+}
+@keyframes camera-appear {
+  0% { opacity:0; clip-path:inset(0 0 100% 0); }
+  18%,100% { opacity:1; clip-path:inset(0); }
+}
+/* Reveal from the camera's left edge, not from an unrelated screen position.
+   The board's right edge is already in its final place behind the feed. */
+@keyframes board-expand {
+  0%,46% { opacity:0; clip-path:inset(0 0 0 100%); }
+  47% { opacity:1; clip-path:inset(0 0 0 98%); }
+  88%,100% { opacity:1; clip-path:inset(0); }
+}
+@keyframes board-signal-tear {
+  0%,47% { filter:none; }
+  49% { filter:contrast(1.8) hue-rotate(24deg); transform:translateX(-5px); }
+  52% { filter:none; transform:translateX(3px); }
+  55% { filter:contrast(1.4) hue-rotate(-12deg); transform:translateX(-2px); }
+  59%,100% { filter:none; transform:none; }
+}
+@keyframes board-content-in {
+  0%,85% { opacity:0; transform:translateY(6px); }
+  100% { opacity:1; transform:none; }
+}
+@keyframes camera-static-clear {
+  0%,50% { opacity:1; }
+  59% { opacity:.2; }
+  67% { opacity:.9; }
+  75% { opacity:.1; }
+  100% { opacity:0; }
+}
+/* Camera is 20% larger for the static/live reveal, then shrinks as it docks. */
+.mission__feed {transform-origin:center center;}
+/* The feed's static finishes before the shared docking movement begins. */
+.mission__feed {
+  animation:camera-appear 320ms steps(1,end) both,
+            camera-dock 2300ms cubic-bezier(.22,1,.36,1) both;
+}
+.mission__board {
+  animation:board-expand 2300ms cubic-bezier(.22,1,.36,1) both,
+            board-signal-tear 2300ms steps(1,end) both;
+}
+.mission__ranking,.mission__entry {animation:board-content-in 2300ms ease-out both}
+.mission__signal {
+  position:absolute;inset:0;z-index:5;overflow:hidden;pointer-events:none;background:#111;
+  animation:camera-static-clear 1150ms linear both;
+}
+.mission__static {display:block;width:100%;height:100%;object-fit:fill;image-rendering:pixelated;filter:contrast(1.6)}
+.mission__signal-bars {position:absolute;inset:0;background:repeating-linear-gradient(to bottom,transparent 0 3px,#0009 4px 5px);mix-blend-mode:multiply}
+/* Small screens stack the feed; don't translate it across the board. */
+@media(max-width:1120px) {
+  .mission__feed {animation:camera-appear 320ms steps(1,end) both}
+  .mission__board {animation:board-expand 2300ms cubic-bezier(.22,1,.36,1) both}
+}
+@media(prefers-reduced-motion:reduce) {
+  .mission__board,.mission__feed,.mission__ranking,.mission__entry,.mission__signal {animation:none!important}
+  .mission__signal {display:none}
+}
