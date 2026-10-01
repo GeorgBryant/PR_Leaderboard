@@ -14,9 +14,9 @@
 .mission__ranking-header h2{margin:0;font-size:15px;font-weight:550;letter-spacing:.025em}
 .mission__metric{display:flex;align-items:center;gap:8px;white-space:nowrap;font-size:10px;letter-spacing:.07em;color:#a69dac}
 .mission__metric .is-active{color:var(--cream)}
-.mission__switch{width:42px;height:23px;border:1px solid #b4a3c3;border-radius:100px;background:#484153;padding:2px;display:flex;align-items:center;justify-content:flex-start}
-.mission__switch.is-bw{background:#6f5b9e;justify-content:flex-end}
-.mission__switch-thumb{display:block;width:17px;height:17px;border-radius:50%;background:var(--cream)}
+.mission__switch{width:42px;height:23px;border:1px solid #b4a3c3;border-radius:0px;background:#484153;padding:2px;display:flex;align-items:center;justify-content:flex-start}
+.mission__switch.is-bw{justify-content:flex-end}
+.mission__switch-thumb{display:block;width:17px;height:17px;border-radius:0%;background:var(--cream)}
 .mission__columns,.mission__athlete{display:grid;grid-template-columns:48px minmax(0,1fr) 92px;align-items:center;gap:8px}
 .mission__columns{flex:none;padding:10px 0;border-bottom:1px solid #f1ebdd80;font-size:10px;letter-spacing:.09em;color:#b9adc0}
 .mission__columns span:last-child,.mission__athlete span:last-child{text-align:right}

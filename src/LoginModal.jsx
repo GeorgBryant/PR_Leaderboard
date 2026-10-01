@@ -34,7 +34,7 @@ const ACCOUNT_MAPPING = {
   Ruki: 9,
 };
 
-export default function LoginModal({ onClose, onLogin }) {
+export default function LoginModal({ onLogin }) {
   const [profiles, setProfiles] = useState([]);
   const [profileId, setProfileId] = useState("");
   const [password, setPassword] = useState("");

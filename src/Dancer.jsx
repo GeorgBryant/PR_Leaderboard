@@ -98,6 +98,8 @@ export default function Dancer({
       return createGalaxyMaterial();
     }, []);
 
+  const galaxyMaterialRef = useRef(galaxyMaterial);
+
   // --------------------------------------------
   // MANNEQUIN MATERIAL
   // --------------------------------------------
@@ -160,7 +162,7 @@ export default function Dancer({
   // --------------------------------------------
 
   useFrame((state, delta) => {
-    galaxyMaterial.uniforms
+    galaxyMaterialRef.current.uniforms
       .time.value =
       state.clock.getElapsedTime();
 
@@ -171,7 +173,7 @@ export default function Dancer({
     if (chestRef.current) {
       chestRef.current
         .getWorldPosition(
-          galaxyMaterial
+          galaxyMaterialRef.current
             .uniforms
             .mannequinOrigin
             .value

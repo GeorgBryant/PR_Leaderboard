@@ -64,7 +64,7 @@ function ExerciseFeed({ exercise, orbitStart }) {
   const rig = useRef();
   const model = useRef();
   const fitted = useRef(false);
-  useFrame((state, delta) => {
+  useFrame((state) => {
     if (!rig.current || !model.current) return;
     // Fit the animated GLB itself, not its arbitrary export origin/scale.
     if (!fitted.current) {
@@ -119,7 +119,9 @@ const displayWeight = (value) => Number(value).toLocaleString(undefined, { maxim
 
 export default function MissionConsole({ exercise, onBack, orbitStart, loggedInProfile, guestRecords, onGuestRecord }) {
   const staticCanvas = useRef(null);
-  const [signalReady, setSignalReady] = useState(false);
+  const [signalReady, setSignalReady] = useState(
+    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
   const [metric, setMetric] = useState("raw");
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -131,11 +133,7 @@ export default function MissionConsole({ exercise, onBack, orbitStart, loggedInP
   // The feed renders continuously underneath a short, procedural static overlay.
   // Only the overlay disappears: the orbit and mannequin never restart.
   useEffect(() => {
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduced) {
-      setSignalReady(true);
-      return;
-    }
+    if (signalReady) return;
     const canvas = staticCanvas.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d", { alpha: false });
@@ -146,9 +144,7 @@ export default function MissionConsole({ exercise, onBack, orbitStart, loggedInP
     canvas.height = height;
     const frame = ctx.createImageData(width, height);
     let frameTimer;
-    let frameNumber = 0;
     const draw = () => {
-      frameNumber++;
       const pixels = frame.data;
       const band = Math.floor(Math.random() * height);
       for (let y = 0; y < height; y++) {
@@ -169,7 +165,7 @@ export default function MissionConsole({ exercise, onBack, orbitStart, loggedInP
       window.clearTimeout(frameTimer);
       window.clearTimeout(readyTimer);
     };
-  }, []);
+  }, [signalReady]);
 
   const key = exerciseKey(exercise.id);
   const memberReady = Boolean(loggedInProfile && !loggedInProfile.mustChangePassword);
@@ -186,20 +182,28 @@ export default function MissionConsole({ exercise, onBack, orbitStart, loggedInP
     setLoading(false);
   }, [key]);
 
-  useEffect(() => { loadRecords(); }, [loadRecords]);
-
   useEffect(() => {
+    let active = true;
+    supabase.from("personal_records")
+      .select("user_id, exercise, weight_kg, bodyweight_kg, profiles(username)")
+      .eq("exercise", key)
+      .then(({ data, error: queryError }) => {
+        if (!active) return;
+        if (queryError) setError(queryError.message);
+        else setRecords(data ?? []);
+        setLoading(false);
+      });
+    return () => { active = false; };
+  }, [key]);
+
+  function openForm() {
     const existing = memberReady
       ? records.find((record) => record.user_id === loggedInProfile.id)
       : guestRecords[key];
-    if (existing) {
-      setWeight(String(existing.weight_kg));
-      setBodyweight(String(existing.bodyweight_kg));
-    } else {
-      setWeight("");
-      setBodyweight("");
-    }
-  }, [key, formOpen, memberReady, loggedInProfile?.id, guestRecords]);
+    setWeight(existing ? String(existing.weight_kg) : "");
+    setBodyweight(existing ? String(existing.bodyweight_kg) : "");
+    setFormOpen(true);
+  }
 
   const ranked = useMemo(() => {
     const members = records.map((record) => ({
@@ -308,7 +312,7 @@ export default function MissionConsole({ exercise, onBack, orbitStart, loggedInP
                 </button>
               </form>
             ) : (
-              <button className="mission__submit" onClick={() => setFormOpen(true)}
+              <button className="mission__submit" onClick={openForm}
                 disabled={Boolean(loggedInProfile?.mustChangePassword)}>
                 ENTER PERSONAL RECORD <span>↗</span>
               </button>

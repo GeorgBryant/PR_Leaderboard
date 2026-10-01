@@ -18,7 +18,7 @@
 .pr-login select:focus{border-color:#d45b86}
 .pr-account{position:fixed;top:48px;right:5vw;z-index:110;font-family:industry,Arial,sans-serif;color:#f1ebdd}
 .pr-account__trigger{padding:0;background:transparent;border:0;color:inherit;font:inherit;font-size:14px;letter-spacing:.12em;cursor:pointer}
-.pr-account__menu{position:absolute;top:calc(100% + 14px);right:0;width:min(340px,calc(100vw - 32px));background:#211b2a;border:1px solid #b9a3c3;padding:0;box-shadow:0 16px 45px #0d0a1699}
+.pr-account__menu {position: absolute;top: calc(100% + 14px);right: 0;width: max-content;min-width: 120px;background: #211b2a;border: 1px solid #b9a3c3;padding: 0;box-shadow: 0 16px 45px #0d0a1699;}
 .pr-account__menu button{width:100%;text-align:left;border:0;background:transparent;color:inherit;padding:10px;font:inherit;font-size:11px;letter-spacing:.08em;cursor:pointer}
 .pr-account__menu button:hover{background:#6f5b9e}
 

@@ -10,7 +10,8 @@ import CameraRig from "./CameraRig";
 import Gym from "./Gym";
 import Dancer from "./Dancer";
 import BeachBackdrop from "./BeachBackdrop";
-import ExerciseCarousel, { exercises } from "./ExerciseCarousel";
+import ExerciseCarousel from "./ExerciseCarousel";
+import { exercises } from "./exercises";
 import "./ExerciseCarousel.css";
 import MissionConsole from "./MissionConsole";
 import "./MissionConsole.css";
@@ -122,7 +123,7 @@ async function handleLogout() {
     };
     frame = requestAnimationFrame(update);
     return () => cancelAnimationFrame(frame);
-  }, [screen === "enteringLeaderboard"]);
+  }, [screen]);
 
   useEffect(() => {
     if (screen !== "leaderboard" || !glitchAudio.current) return;
@@ -131,22 +132,32 @@ async function handleLogout() {
     audio.volume = 0.38;
     audio.play().catch(() => {});
     return () => { audio.pause(); audio.currentTime = 0; };
-  }, [screen === "leaderboard"]);
+  }, [screen]);
+  // The space layer starts fading in during ascent. Its visibility and
+  // orbital clock are reset by the transitions that own them.
   useEffect(() => {
-    if (screen === "leaderboard") {
-      setOrbitStart(Date.now());
-      setSpaceVisible(true);
-      return;
-    }
-    if (screen !== "enteringLeaderboard") {
-      setOrbitStart(null);
-      setSpaceVisible(false);
-      return;
-    }
-    // Begin crossfade late in the ascent, before the leaderboard arrives.
+    if (screen !== "enteringLeaderboard") return;
     const id = window.setTimeout(() => setSpaceVisible(true), 2650);
     return () => window.clearTimeout(id);
   }, [screen]);
+
+  function completeTransition(nextScreen) {
+    if (nextScreen === "leaderboard") {
+      setOrbitStart(Date.now());
+      setSpaceVisible(true);
+    } else {
+      setOrbitStart(null);
+      setSpaceVisible(false);
+    }
+    setScreen(nextScreen);
+  }
+
+  function launchLeaderboard() {
+    setOrbitStart(null);
+    setSpaceVisible(false);
+    setScreen("enteringLeaderboard");
+  }
+
   function previousExercise() { setActiveIndex(current => (current - 1 + exercises.length) % exercises.length); }
   function nextExercise() { setActiveIndex(current => (current + 1) % exercises.length); }
   function toggleAccount() { setLoginOpen((open) => !open); }
@@ -157,9 +168,28 @@ async function handleLogout() {
       <Canvas camera={{ position: [0, -2, 52], fov: 38, far: 5000 }}>
         <BeachBackdrop />
         <ambientLight intensity={0.35} color="#6f5b9e" />
-        <directionalLight position={[0, 20, -40]} intensity={2.5} color="#ffffff" />
-        <pointLight position={[0, 3, 1]} intensity={20} distance={12} decay={2} color="#f4e8ff" />
-        <CameraRig mode={screen} onTransitionComplete={setScreen} />
+        {/* COOL AMBIENT FILL */}
+<ambientLight
+  intensity={0.3}
+  color="#8276b5"
+/>
+
+{/* GOLDEN-HOUR SUN */}
+<directionalLight
+  position={[0, 14, -80]}
+  intensity={3.0}
+  color="#ffca83"
+/>
+
+{/* SUBTLE INTERIOR FILL */}
+<pointLight
+  position={[0, 3, 1]}
+  intensity={12}
+  distance={14}
+  decay={2}
+  color="#dfd2ff"
+/>
+        <CameraRig mode={screen} onTransitionComplete={completeTransition} />
         <Gym />
         <Dancer mode={screen} />
         {screen !== "leaderboard" && <ExerciseCarousel activeIndex={activeIndex} mode={screen} />}
@@ -174,7 +204,7 @@ async function handleLogout() {
         <button className="exercise-select__back" onClick={() => setScreen("exiting")}>BACK</button>
         <div className="exercise-carousel__controls">
           <button onClick={previousExercise} aria-label="Previous exercise">←</button>
-          <button className="exercise-carousel__select" onClick={() => setScreen("enteringLeaderboard")}>
+          <button className="exercise-carousel__select" onClick={launchLeaderboard}>
             <span className="exercise-carousel__name">{exercises[activeIndex].name}</span>
             <span className="exercise-carousel__select-label">LAUNCH</span>
           </button>
@@ -188,7 +218,7 @@ async function handleLogout() {
           loggedInProfile={loggedInProfile}
           guestRecords={guestRecords}
           onGuestRecord={(exerciseId, record) => setGuestRecords((previous) => ({ ...previous, [exerciseId]: record }))}
-          onBack={() => setScreen("carousel")}
+          onBack={() => completeTransition("carousel")}
         />
       )}
       <div className="pr-account" ref={accountRef}>
@@ -202,8 +232,7 @@ async function handleLogout() {
   LOG OUT
 </button>
           ) : (
-            <LoginModal onClose={() => setLoginOpen(false)}
-              onLogin={(profile) => { setLoggedInProfile(profile); setLoginOpen(false); }} />
+            <LoginModal onLogin={(profile) => { setLoggedInProfile(profile); setLoginOpen(false); }} />
           )}
         </div>}
       </div>

@@ -61,6 +61,8 @@ export default function Exercise({
     }, []);
 
 
+  const galaxyMaterialRef = useRef(galaxyMaterial);
+
   // --------------------------------------------
   // MATERIALS + SHADOW CASTING
   // --------------------------------------------
@@ -101,13 +103,13 @@ export default function Exercise({
   // --------------------------------------------
 
   useFrame((state) => {
-    galaxyMaterial.uniforms
+    galaxyMaterialRef.current.uniforms
       .time.value =
       state.clock.getElapsedTime();
 
     if (group.current) {
       group.current.getWorldPosition(
-        galaxyMaterial.uniforms
+        galaxyMaterialRef.current.uniforms
           .mannequinOrigin
           .value
       );

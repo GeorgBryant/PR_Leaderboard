@@ -57,8 +57,6 @@ const RETURN_HOME_DURATION = 1.6;
 // Existing home / portal / carousel movement
 // remains untouched.
 const LEADERBOARD_LAUNCH_DURATION = 4.2;
-const LEADERBOARD_LAUNCH_HEIGHT = 32;
-const LEADERBOARD_FORWARD_TRAVEL = 8;
 
 // Cross back slightly early while the
 // mannequin is filling the viewport.
@@ -217,11 +215,6 @@ export default function CameraRig({
   // --------------------------------------------
 
   const leaderboardStart =
-    useRef(
-      new THREE.Vector3()
-    );
-
-  const leaderboardControl =
     useRef(
       new THREE.Vector3()
     );

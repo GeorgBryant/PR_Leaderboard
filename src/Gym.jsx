@@ -62,6 +62,8 @@ export default function Gym() {
   ]);
 
 
+  const wallMaterialRef = useRef(wallMaterial);
+
   // --------------------------------------------
   // MIRROR PLACEHOLDER
   // --------------------------------------------
@@ -73,12 +75,13 @@ export default function Gym() {
       );
     }, [scene]);
 
+  const mirrorPlaceholderRef = useRef(mirrorPlaceholder);
+
   useEffect(() => {
-    if (mirrorPlaceholder) {
-      mirrorPlaceholder.visible =
-        false;
+    if (mirrorPlaceholderRef.current) {
+      mirrorPlaceholderRef.current.visible = false;
     }
-  }, [mirrorPlaceholder]);
+  }, []);
 
 
   // --------------------------------------------
@@ -192,7 +195,7 @@ export default function Gym() {
   // --------------------------------------------
 
   useFrame((state) => {
-    wallMaterial.uniforms.time.value =
+    wallMaterialRef.current.uniforms.time.value =
       state.clock.getElapsedTime();
 
     if (
@@ -306,8 +309,7 @@ export default function Gym() {
       cameraDirection
     );
 
-    cameraDirection.x *= -1;
-    cameraDirection.z *= -1;
+    cameraDirection.set(-cameraDirection.x, cameraDirection.y, -cameraDirection.z);
 
     portalLookTarget
       .copy(

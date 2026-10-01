@@ -5,22 +5,32 @@ import { getOrbitPose } from "./orbitFlight";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
+// A fixed seed keeps the starfield stable across renders and remounts.
+function seededRandom(seed) {
+  let state = seed;
+  return () => {
+    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+    return state / 4294967296;
+  };
+}
+
 // Independent 3D environment: not part of the Blender GLB.
 // This can later be replaced by a Blender-authored asteroid/planet scene.
 function Starfield() {
   const stars = useRef();
   const geometry = useMemo(() => {
+    const random = seededRandom(2400);
     const count = 2400;
     const positions = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
     const palette = ["#b4bfe8", "#e3b3e6", "#fff1d7", "#a2aee7"];
     for (let i = 0; i < count; i++) {
-      const z = 2 * Math.random() - 1;
-      const a = Math.random() * Math.PI * 2;
-      const r = 75 + Math.random() * 95;
+      const z = 2 * random() - 1;
+      const a = random() * Math.PI * 2;
+      const r = 75 + random() * 95;
       const h = Math.sqrt(1 - z * z);
       positions.set([r * h * Math.cos(a), r * z, r * h * Math.sin(a)], i * 3);
-      const c = new THREE.Color(palette[Math.floor(Math.random() * palette.length)]);
+      const c = new THREE.Color(palette[Math.floor(random() * palette.length)]);
       colors.set([c.r, c.g, c.b], i * 3);
     }
     const g = new THREE.BufferGeometry();
@@ -87,31 +97,11 @@ function Nebula() {
       }
     `,
   }), []);
-  useFrame((state) => { material.uniforms.uTime.value = state.clock.elapsedTime; });
+  const materialRef = useRef(material);
+  useFrame((state) => { materialRef.current.uniforms.uTime.value = state.clock.elapsedTime; });
   return <mesh material={material} scale={180}>
     <sphereGeometry args={[1, 64, 40]} />
   </mesh>;
-}
-
-function Planet() {
-  const planet = useRef();
-  useFrame((state) => {
-    if (planet.current) planet.current.rotation.y = state.clock.elapsedTime * 0.012;
-  });
-  return (
-    <group position={[33, -19, -65]}>
-      <mesh ref={planet}>
-        <sphereGeometry args={[15, 48, 32]} />
-        <meshStandardMaterial color="#42476f" roughness={1} metalness={0}
-          emissive="#17142f" emissiveIntensity={0.2} />
-      </mesh>
-      <mesh scale={1.04}>
-        <sphereGeometry args={[15, 48, 32]} />
-        <meshBasicMaterial color="#7775bf" transparent opacity={0.075}
-          side={THREE.BackSide} depthWrite={false} />
-      </mesh>
-    </group>
-  );
 }
 
 // The orbital flyer needs its OWN skinned scene instance. A GLTF scene
